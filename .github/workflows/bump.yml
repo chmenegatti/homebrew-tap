@@ -1,0 +1,33 @@
+name: Update cask
+
+# Checks the latest Zeno release every 6 hours and updates Casks/zeno.rb (version + sha256 of the
+# universal .dmg, taken from the release asset digest). Uses only this repository's own token.
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update to the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rel=$(gh api repos/chmenegatti/zeno/releases/latest)
+          v=$(jq -r '.tag_name | ltrimstr("v")' <<<"$rel")
+          cur=$(sed -n 's/^  version "\(.*\)"$/\1/p' Casks/zeno.rb)
+          if [ "$v" = "$cur" ]; then echo "already at $v"; exit 0; fi
+          sha=$(jq -r '.assets[] | select(.name | endswith("-macos-universal.dmg")) | .digest | ltrimstr("sha256:")' <<<"$rel")
+          [[ "$sha" =~ ^[0-9a-f]{64}$ ]] || { echo "no .dmg digest in $v"; exit 1; }
+          sed -i "s/^  version \".*\"$/  version \"$v\"/; s/^  sha256 \".*\"$/  sha256 \"$sha\"/" Casks/zeno.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "feat: Zeno $v"
+          git push
