@@ -1,6 +1,6 @@
 cask "zeno" do
-  version "1.2.0"
-  sha256 "af5ffe61e485295c5ed197be16fb1275a53e4af09111bab0be7c5bbc9e54e1ef"
+  version "1.3.0"
+  sha256 "9052b3c9680307d5d62b5d4d43d11c7be6d2b62312370bb61023433ab85dd28e"
 
   url "https://github.com/chmenegatti/zeno/releases/download/v#{version}/Zeno-#{version}-macos-universal.dmg"
   name "Zeno"
